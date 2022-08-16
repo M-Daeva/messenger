@@ -1,29 +1,34 @@
+use crate::state::{Message, Rarity, Tag};
+use cosmwasm_std::Addr;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub struct InstantiateMsg {
-    pub count: u8,
-}
+pub struct InstantiateMsg {}
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
-    Increment {},
-    Set { count: u8 },
+    CreateMessage {
+        tag: Tag,
+        body: String,
+        rarity: Rarity,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    GetCount {},
+    GetMessages {},
+    GetMessageById { id: u128 },
+    GetMessagesByAddr { addr: Addr },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub struct CountResponse {
-    pub count: u8,
+pub struct MessagesResponse {
+    pub messages: Vec<Message>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
