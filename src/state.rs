@@ -59,3 +59,4 @@ pub enum Rarity {
 }
 
 pub const BOOK: Item<Book> = Item::new("book");
+pub const MSG_BY_ID: Map<u128, Message> = Map::new("msg_by_id");

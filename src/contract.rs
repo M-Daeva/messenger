@@ -4,8 +4,8 @@ use cosmwasm_std::{coin, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Res
 use cw2::set_contract_version;
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InstantiateMsg, MessagesResponse, QueryMsg};
-use crate::state::{Book, Message, Props, Rarity, Tag, BOOK};
+use crate::msg::{ExecuteMsg, InstantiateMsg, MessageResponse, MessagesResponse, QueryMsg};
+use crate::state::{Book, Message, Props, Rarity, Tag, BOOK, MSG_BY_ID};
 
 // version info for migration info
 const CONTRACT_NAME: &str = "crates.io:messenger";
@@ -115,7 +115,7 @@ pub fn create_msg(
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::GetMessages {} => get_messages(deps),
-        QueryMsg::GetMessageById { id } => todo!(),
+        QueryMsg::GetMessageById { id } => get_msg_by_id(deps, id),
         QueryMsg::GetMessagesByAddr { addr } => todo!(),
     }
 }
@@ -128,19 +128,31 @@ pub fn get_messages(deps: Deps) -> StdResult<Binary> {
     })
 }
 
+pub fn get_msg_by_id(deps: Deps, id: u128) -> StdResult<Binary> {
+    let message = MSG_BY_ID.load(deps.storage, id)?;
+    to_binary(&MessageResponse { message })
+}
+
 #[cfg(test)]
 mod tests {
     use crate::contract::{execute, instantiate, query};
-    use crate::msg::{ExecuteMsg, InstantiateMsg, MessagesResponse, QueryMsg};
+    use crate::msg::{ExecuteMsg, InstantiateMsg, MessageResponse, MessagesResponse, QueryMsg};
     use crate::state::{Book, Message, Rarity, Tag};
     use crate::ContractError;
     use cosmwasm_std::testing::{
         mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage,
     };
-    use cosmwasm_std::{attr, from_binary, Empty, Env, MessageInfo, OwnedDeps, Response};
+    use cosmwasm_std::{
+        attr, from_binary, Addr, Coin, Empty, Env, MessageInfo, OwnedDeps, Response,
+    };
 
     pub const ADMIN_ADDR: &str = "juno1gjqnuhv52pd2a7ets2vhw9w9qa9knyhyqd4qeg";
     pub const ALICE_ADDR: &str = "juno1chgwz55h9kepjq0fkj5supl2ta3nwu638camkg";
+    pub const BOB_ADDR: &str = "juno18tnvnwkklyv4dyuj8x357n7vray4v4zulm2dr9";
+
+    pub const BODY1: &str = "Together we can rule the galaxy!";
+    pub const BODY2: &str = "Thank you, Max!";
+    pub const BODY3: &str = "BUIDL!!!";
 
     type Instance = (
         OwnedDeps<MockStorage, MockApi, MockQuerier, Empty>,
@@ -156,6 +168,50 @@ mod tests {
         let msg = InstantiateMsg {};
 
         let res = instantiate(deps.as_mut(), env.clone(), info.clone(), msg);
+        (deps, env, info, res)
+    }
+
+    fn add_msg(instance: Instance, msg: ExecuteMsg, user_addr: &str, funds: &[Coin]) -> Instance {
+        let (mut deps, env, info, _) = instance;
+        let info = mock_info(user_addr, funds);
+        let res = execute(deps.as_mut(), env.clone(), info.clone(), msg);
+        (deps, env, info, res)
+    }
+
+    fn create_some_msgs() -> Instance {
+        let (deps, env, info, res) = add_msg(
+            get_instance(ADMIN_ADDR),
+            ExecuteMsg::CreateMessage {
+                tag: Tag::Juno,
+                body: BODY1.to_string(),
+                rarity: Rarity::Epic,
+            },
+            ALICE_ADDR,
+            &[],
+        );
+
+        let (deps, env, msg, res) = add_msg(
+            (deps, env.clone(), info.clone(), res),
+            ExecuteMsg::CreateMessage {
+                tag: Tag::Juno,
+                body: BODY2.to_string(),
+                rarity: Rarity::Epic,
+            },
+            BOB_ADDR,
+            &[],
+        );
+
+        let (deps, env, msg, res) = add_msg(
+            (deps, env.clone(), info.clone(), res),
+            ExecuteMsg::CreateMessage {
+                tag: Tag::Juno,
+                body: BODY3.to_string(),
+                rarity: Rarity::Epic,
+            },
+            ALICE_ADDR,
+            &[],
+        );
+
         (deps, env, info, res)
     }
 
@@ -175,15 +231,16 @@ mod tests {
 
     #[test]
     fn test_create_msg() {
-        let (mut deps, env, info, _) = get_instance(ADMIN_ADDR);
-        let body = "Together we can rule the galaxy!";
-        let msg = ExecuteMsg::CreateMessage {
-            tag: Tag::Juno,
-            body: body.to_string(),
-            rarity: Rarity::Epic,
-        };
-        let info = mock_info(ALICE_ADDR, &[]);
-        let res = execute(deps.as_mut(), env, info, msg);
+        let (_, _, _, res) = add_msg(
+            get_instance(ADMIN_ADDR),
+            ExecuteMsg::CreateMessage {
+                tag: Tag::Juno,
+                body: BODY1.to_string(),
+                rarity: Rarity::Epic,
+            },
+            ALICE_ADDR,
+            &[],
+        );
 
         assert_eq!(
             res.unwrap().attributes,
@@ -191,7 +248,7 @@ mod tests {
                 attr("method", "create_msg"),
                 attr("sender", ALICE_ADDR),
                 attr("tag", "JUNO"),
-                attr("body", body),
+                attr("body", BODY1),
                 attr("rarity", "Epic"),
                 attr("lifetime_cnt", "1000000"),
                 attr("cooldown_cnt", "1")
@@ -207,5 +264,55 @@ mod tests {
         let res = from_binary::<MessagesResponse>(&bin).unwrap();
 
         assert_eq!(res.messages, Vec::<Message>::new());
+    }
+
+    #[test]
+    fn test_query_msg_by_id() {
+        //let (deps, env, _, _) = create_some_msgs();
+
+        let (deps, env, _, res) = add_msg(
+            get_instance(ADMIN_ADDR),
+            ExecuteMsg::CreateMessage {
+                tag: Tag::Juno,
+                body: BODY2.to_string(),
+                rarity: Rarity::Epic,
+            },
+            BOB_ADDR,
+            &[],
+        );
+
+        // let msg = QueryMsg::GetMessageById { id: 0 };
+        // let bin = query(deps.as_ref(), env, msg).unwrap();
+        // let res = from_binary::<MessageResponse>(&bin).unwrap();
+
+        // assert_eq!(
+        //     res.message,
+        //     Message {
+        //         id: 0,
+        //         sender: Addr::unchecked(BOB_ADDR), // for tests
+        //         tag: "JUNO".to_string(),
+        //         body: BODY2.to_string(),
+        //         rarity: "Epic".to_string(),
+        //         lifetime_cnt: 1_000_000,
+        //         cooldown_cnt: 1,
+        //     }
+        // );
+
+        let msg = QueryMsg::GetMessages {};
+        let bin = query(deps.as_ref(), env, msg).unwrap();
+        let res = from_binary::<MessagesResponse>(&bin).unwrap();
+
+        assert_eq!(
+            res.messages[0],
+            Message {
+                id: 0,
+                sender: Addr::unchecked(BOB_ADDR), // for tests
+                tag: "JUNO".to_string(),
+                body: BODY2.to_string(),
+                rarity: "Epic".to_string(),
+                lifetime_cnt: 1_000_000,
+                cooldown_cnt: 1,
+            }
+        );
     }
 }
