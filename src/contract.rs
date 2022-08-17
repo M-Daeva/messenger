@@ -97,6 +97,7 @@ pub fn create_msg(
         cooldown_cnt: props.cooldown,
     };
 
+    MSG_BY_ID.save(deps.storage, new_msg.id, &new_msg);
     book.messages.push(new_msg.clone());
     book.id_cnt += 1;
 
@@ -258,54 +259,25 @@ mod tests {
 
     #[test]
     fn test_query() {
-        let (deps, env, _, _) = get_instance(ADMIN_ADDR);
+        let (deps, env, _, _) = create_some_msgs();
         let msg = QueryMsg::GetMessages {};
         let bin = query(deps.as_ref(), env, msg).unwrap();
         let res = from_binary::<MessagesResponse>(&bin).unwrap();
 
-        assert_eq!(res.messages, Vec::<Message>::new());
+        assert_eq!(res.messages.len(), 3);
     }
 
     #[test]
     fn test_query_msg_by_id() {
-        //let (deps, env, _, _) = create_some_msgs();
-
-        let (deps, env, _, res) = add_msg(
-            get_instance(ADMIN_ADDR),
-            ExecuteMsg::CreateMessage {
-                tag: Tag::Juno,
-                body: BODY2.to_string(),
-                rarity: Rarity::Epic,
-            },
-            BOB_ADDR,
-            &[],
-        );
-
-        // let msg = QueryMsg::GetMessageById { id: 0 };
-        // let bin = query(deps.as_ref(), env, msg).unwrap();
-        // let res = from_binary::<MessageResponse>(&bin).unwrap();
-
-        // assert_eq!(
-        //     res.message,
-        //     Message {
-        //         id: 0,
-        //         sender: Addr::unchecked(BOB_ADDR), // for tests
-        //         tag: "JUNO".to_string(),
-        //         body: BODY2.to_string(),
-        //         rarity: "Epic".to_string(),
-        //         lifetime_cnt: 1_000_000,
-        //         cooldown_cnt: 1,
-        //     }
-        // );
-
-        let msg = QueryMsg::GetMessages {};
+        let (deps, env, _, _) = create_some_msgs();
+        let msg = QueryMsg::GetMessageById { id: 1 };
         let bin = query(deps.as_ref(), env, msg).unwrap();
-        let res = from_binary::<MessagesResponse>(&bin).unwrap();
+        let res = from_binary::<MessageResponse>(&bin).unwrap();
 
         assert_eq!(
-            res.messages[0],
+            res.message,
             Message {
-                id: 0,
+                id: 1,
                 sender: Addr::unchecked(BOB_ADDR), // for tests
                 tag: "JUNO".to_string(),
                 body: BODY2.to_string(),
