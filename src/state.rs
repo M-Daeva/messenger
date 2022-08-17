@@ -8,7 +8,6 @@ use cw_storage_plus::{Item, Map};
 pub struct Book {
     pub admin: Addr,
     pub id_cnt: u128,
-    pub messages: Vec<Message>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -59,4 +58,4 @@ pub enum Rarity {
 }
 
 pub const BOOK: Item<Book> = Item::new("book");
-pub const MSG_BY_ID: Map<u128, Message> = Map::new("msg_by_id");
+pub const MESSAGES: Map<u128, Message> = Map::new("message");

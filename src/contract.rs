@@ -1,11 +1,13 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{coin, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{
+    coin, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Order, Response, StdResult,
+};
 use cw2::set_contract_version;
 
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, MessageResponse, MessagesResponse, QueryMsg};
-use crate::state::{Book, Message, Props, Rarity, Tag, BOOK, MSG_BY_ID};
+use crate::state::{Book, Message, Props, Rarity, Tag, BOOK, MESSAGES};
 
 // version info for migration info
 const CONTRACT_NAME: &str = "crates.io:messenger";
@@ -21,7 +23,6 @@ pub fn instantiate(
     let initial_book = Book {
         admin: deps.api.addr_validate(info.sender.as_str())?,
         id_cnt: 0,
-        messages: Vec::<Message>::new(),
     };
 
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
@@ -30,8 +31,7 @@ pub fn instantiate(
 
     Ok(Response::new()
         .add_attribute("method", "instantiate")
-        .add_attribute("admin", initial_book.admin)
-        .add_attribute("message amount", initial_book.messages.len().to_string()))
+        .add_attribute("admin", initial_book.admin))
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -97,11 +97,10 @@ pub fn create_msg(
         cooldown_cnt: props.cooldown,
     };
 
-    MSG_BY_ID.save(deps.storage, new_msg.id, &new_msg);
-    book.messages.push(new_msg.clone());
+    MESSAGES.save(deps.storage, new_msg.id, &new_msg);
     book.id_cnt += 1;
-
     BOOK.save(deps.storage, &book)?;
+
     Ok(Response::new()
         .add_attribute("method", "create_msg")
         .add_attribute("sender", new_msg.sender)
@@ -117,22 +116,32 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::GetMessages {} => get_messages(deps),
         QueryMsg::GetMessageById { id } => get_msg_by_id(deps, id),
-        QueryMsg::GetMessagesByAddr { addr } => todo!(),
+        QueryMsg::GetMessagesByAddr { addr } => unimplemented!(),
     }
 }
 
 pub fn get_messages(deps: Deps) -> StdResult<Binary> {
-    let book = BOOK.load(deps.storage)?;
+    let messages = MESSAGES
+        .range(deps.storage, None, None, Order::Ascending)
+        .map(|p| Ok(p?.1))
+        .collect::<StdResult<Vec<_>>>()?;
 
-    to_binary(&MessagesResponse {
-        messages: book.messages,
-    })
+    to_binary(&MessagesResponse { messages })
 }
 
 pub fn get_msg_by_id(deps: Deps, id: u128) -> StdResult<Binary> {
-    let message = MSG_BY_ID.load(deps.storage, id)?;
+    let message = MESSAGES.load(deps.storage, id)?;
     to_binary(&MessageResponse { message })
 }
+
+// pub fn get_msgs_by_addr(deps: Deps, addr: Addr) -> StdResult<Binary> {
+//     let messages = MESSAGES
+//         .range(deps.storage, None, None, Order::Ascending)
+//         .filter(|p| Ok())
+//         .collect::<StdResult<Vec<_>>>()?;
+
+//     to_binary(&MessagesResponse { messages })
+// }
 
 #[cfg(test)]
 mod tests {
@@ -222,11 +231,7 @@ mod tests {
 
         assert_eq!(
             res.unwrap().attributes,
-            vec![
-                attr("method", "instantiate"),
-                attr("admin", ADMIN_ADDR),
-                attr("message amount", "0")
-            ]
+            vec![attr("method", "instantiate"), attr("admin", ADMIN_ADDR),]
         )
     }
 
