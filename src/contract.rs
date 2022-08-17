@@ -1,7 +1,8 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    coin, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Order, Response, StdResult,
+    coin, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Order, Response, StdError,
+    StdResult,
 };
 use cw2::set_contract_version;
 
@@ -116,7 +117,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::GetMessages {} => get_messages(deps),
         QueryMsg::GetMessageById { id } => get_msg_by_id(deps, id),
-        QueryMsg::GetMessagesByAddr { addr } => unimplemented!(),
+        QueryMsg::GetMessagesByAddr { addr } => get_msgs_by_addr(deps, addr),
     }
 }
 
@@ -134,14 +135,20 @@ pub fn get_msg_by_id(deps: Deps, id: u128) -> StdResult<Binary> {
     to_binary(&MessageResponse { message })
 }
 
-// pub fn get_msgs_by_addr(deps: Deps, addr: Addr) -> StdResult<Binary> {
-//     let messages = MESSAGES
-//         .range(deps.storage, None, None, Order::Ascending)
-//         .filter(|p| Ok())
-//         .collect::<StdResult<Vec<_>>>()?;
+pub fn get_msgs_by_addr(deps: Deps, addr: String) -> StdResult<Binary> {
+    fn compare(p: &Result<(u128, Message), StdError>, addr: &String) -> bool {
+        let (_, v) = p.as_ref().unwrap();
+        v.sender == String::from(addr)
+    }
 
-//     to_binary(&MessagesResponse { messages })
-// }
+    let messages = MESSAGES
+        .range(deps.storage, None, None, Order::Ascending)
+        .filter(|p| compare(p, &addr))
+        .map(|p| Ok(p?.1))
+        .collect::<StdResult<Vec<_>>>()?;
+
+    to_binary(&MessagesResponse { messages })
+}
 
 #[cfg(test)]
 mod tests {
@@ -290,6 +297,40 @@ mod tests {
                 lifetime_cnt: 1_000_000,
                 cooldown_cnt: 1,
             }
+        );
+    }
+
+    #[test]
+    fn test_query_msgs_by_addr() {
+        let (deps, env, _, _) = create_some_msgs();
+        let msg = QueryMsg::GetMessagesByAddr {
+            addr: ALICE_ADDR.to_string(),
+        };
+        let bin = query(deps.as_ref(), env, msg).unwrap();
+        let res = from_binary::<MessagesResponse>(&bin).unwrap();
+
+        assert_eq!(
+            res.messages,
+            vec![
+                Message {
+                    id: 0,
+                    sender: Addr::unchecked(ALICE_ADDR), // for tests
+                    tag: "JUNO".to_string(),
+                    body: BODY1.to_string(),
+                    rarity: "Epic".to_string(),
+                    lifetime_cnt: 1_000_000,
+                    cooldown_cnt: 1,
+                },
+                Message {
+                    id: 2,
+                    sender: Addr::unchecked(ALICE_ADDR), // for tests
+                    tag: "JUNO".to_string(),
+                    body: BODY3.to_string(),
+                    rarity: "Epic".to_string(),
+                    lifetime_cnt: 1_000_000,
+                    cooldown_cnt: 1,
+                },
+            ]
         );
     }
 }

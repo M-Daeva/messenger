@@ -1,5 +1,4 @@
 use crate::state::{Message, Rarity, Tag};
-use cosmwasm_std::Addr;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -22,7 +21,7 @@ pub enum ExecuteMsg {
 pub enum QueryMsg {
     GetMessages {},
     GetMessageById { id: u128 },
-    GetMessagesByAddr { addr: Addr },
+    GetMessagesByAddr { addr: String },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
