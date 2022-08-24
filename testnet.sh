@@ -7,6 +7,7 @@ DIR=$(pwd)
 DIR_NAME=$(basename "$PWD")
 DIR_NAME_SNAKE=$(echo $DIR_NAME | tr '-' '_')
 WASM="artifacts/$DIR_NAME_SNAKE.wasm"
+ALICE_ADDRESS="juno1gjqnuhv52pd2a7ets2vhw9w9qa9knyhyqd4qeg"
 
 # build optimized binary if it doesn't exist
 if [ ! -f "$WASM" ]; then
@@ -27,7 +28,7 @@ echo contract code is $CONTRACT_CODE
 
 # instantiate smart contract
 INIT='{"count":42}'
-junod tx wasm instantiate $CONTRACT_CODE "$INIT" --from "alice" --label "my first contract" $TXFLAG --no-admin
+junod tx wasm instantiate $CONTRACT_CODE "$INIT" --from "alice" --label "my first contract" $TXFLAG --admin $ALICE_ADDRESS
 
 # get smart contract address
 CONTRACT_ADDRESS=$(junod query wasm list-contract-by-code $CONTRACT_CODE --node $RPC --chain-id $CHAIN_ID --output json | jq -r '.contracts[-1]')

@@ -1,6 +1,6 @@
 {
-  "name": "cw-template",
-  "version": "1.1.0",
+  "name": "messenger",
+  "version": "1.0.0",
   "description": "",
   "main": "./index.ts",
   "private": true,
@@ -8,19 +8,20 @@
     "node": ">=12.x"
   },
   "scripts": {
-    "start": "ts-node ./index.ts"
+    "start": "ts-node ./index.ts",
+    "init": "sudo chmod +x ../testnet.sh && cp ../../.test-wallets/test_wallets.json ./test_wallets.json && npm i"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/M-Daeva/cw-template.git"
+    "url": "git+https://github.com/M-Daeva/messenger.git"
   },
   "keywords": [],
   "author": "M. Daeva",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/M-Daeva/cw-template/issues"
+    "url": "https://github.com/M-Daeva/messenger/issues"
   },
-  "homepage": "https://github.com/M-Daeva/cw-template#readme",
+  "homepage": "https://github.com/M-Daeva/messenger#readme",
   "devDependencies": {
     "@types/node": "^17.0.31",
     "typescript": "^4.6.4"
