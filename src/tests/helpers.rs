@@ -7,7 +7,7 @@ use crate::{
     contract::{execute, instantiate},
     error::ContractError,
     messages::{execute::ExecuteMsg, instantiate::InstantiateMsg},
-    state::{Rarity, Tag},
+    state::{COMMON, EPIC, RARE, TAG},
 };
 
 pub const ADMIN_ADDR: &str = "juno1gjqnuhv52pd2a7ets2vhw9w9qa9knyhyqd4qeg";
@@ -46,33 +46,33 @@ pub fn create_some_msgs() -> Instance {
     let (deps, env, info, res) = add_msg(
         get_instance(ADMIN_ADDR),
         ExecuteMsg::CreateMessage {
-            tag: Tag::Juno,
+            tag: TAG::JUNO.to_string(),
             body: BODY1.to_string(),
-            rarity: Rarity::Epic,
+            rarity: COMMON.rar.to_string(),
         },
-        ALICE_ADDR,
+        &ALICE_ADDR,
         &[],
     );
 
     let (deps, env, _msg, res) = add_msg(
         (deps, env.clone(), info.clone(), res),
         ExecuteMsg::CreateMessage {
-            tag: Tag::Juno,
+            tag: TAG::JUNO.to_string(),
             body: BODY2.to_string(),
-            rarity: Rarity::Epic,
+            rarity: COMMON.rar.to_string(),
         },
-        BOB_ADDR,
+        &BOB_ADDR,
         &[],
     );
 
     let (deps, env, _msg, res) = add_msg(
         (deps, env.clone(), info.clone(), res),
         ExecuteMsg::CreateMessage {
-            tag: Tag::Juno,
+            tag: TAG::JUNO.to_string(),
             body: BODY3.to_string(),
-            rarity: Rarity::Epic,
+            rarity: COMMON.rar.to_string(),
         },
-        ALICE_ADDR,
+        &ALICE_ADDR,
         &[],
     );
 

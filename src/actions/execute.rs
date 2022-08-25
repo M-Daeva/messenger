@@ -3,7 +3,7 @@ use cosmwasm_std::{coin, DepsMut, Env, MessageInfo, Response};
 
 use crate::{
     error::ContractError,
-    state::{Message, Props, Rarity, Tag, BOOK, MESSAGES},
+    state::{Message, BOOK, COMMON, EPIC, MESSAGES, RARE, TAG},
 };
 
 pub fn create_msg(
@@ -11,61 +11,36 @@ pub fn create_msg(
     _env: Env,
     info: MessageInfo,
     body: String,
-    tag: Tag,
-    rarity: Rarity,
+    tag: String,
+    rarity: String,
 ) -> Result<Response, ContractError> {
     let mut book = BOOK.load(deps.storage)?;
 
+    // verify a tag
     let new_tag = match tag {
-        Tag::Atom => String::from("ATOM"),
-        Tag::Osmo => String::from("OSMO"),
-        Tag::Juno => String::from("JUNO"),
+        _ if &tag == TAG::ATOM || &tag == TAG::OSMO || &tag == TAG::JUNO => tag,
+        _ => TAG::ATOM.to_string(),
     };
 
-    let props = match rarity {
-        Rarity::Common => Props {
-            name: String::from("Common"),
-            lifetime: 5,
-            cooldown: 1,
-            price: coin(0, "ujunox"),
-            stake_req: coin(0, "ujunox"),
-        },
-        Rarity::Rare => Props {
-            name: String::from("Rare"),
-            lifetime: 30,
-            cooldown: 2,
-            price: coin(0, "ujunox"),
-            stake_req: coin(1_000_000, "ujunox"),
-        },
-        Rarity::Epic => Props {
-            name: String::from("Epic"),
-            lifetime: 1_000_000,
-            cooldown: 1,
-            price: coin(1_000_000, "ujunox"),
-            stake_req: coin(0, "ujunox"),
-        },
+    let base = match rarity.as_ref() {
+        "Rare" => RARE,
+        "Epic" if info.funds[0] == coin(EPIC.price.0, EPIC.price.1) => EPIC,
+        _ => COMMON,
     };
 
-    let new_msg = Message {
-        id: book.id_cnt,
-        sender: deps.api.addr_validate(info.sender.as_str())?,
-        tag: new_tag,
-        body,
-        rarity: props.name,
-        lifetime_cnt: props.lifetime,
-        cooldown_cnt: props.cooldown,
-    };
+    let msg = Message::new(book.id_cnt, info.sender, &new_tag, &body, &base);
 
-    MESSAGES.save(deps.storage, new_msg.id, &new_msg)?;
+    MESSAGES.save(deps.storage, msg.id, &msg)?;
     book.id_cnt += 1;
     BOOK.save(deps.storage, &book)?;
 
-    Ok(Response::new()
-        .add_attribute("method", "create_msg")
-        .add_attribute("sender", new_msg.sender)
-        .add_attribute("tag", new_msg.tag)
-        .add_attribute("body", new_msg.body)
-        .add_attribute("rarity", new_msg.rarity)
-        .add_attribute("lifetime_cnt", new_msg.lifetime_cnt.to_string())
-        .add_attribute("cooldown_cnt", new_msg.cooldown_cnt.to_string()))
+    Ok(Response::new().add_attributes(vec![
+        ("method", "create_msg"),
+        ("sender", msg.sender.as_ref()),
+        ("tag", msg.tag.as_ref()),
+        ("body", msg.body.as_ref()),
+        ("rarity", msg.rarity.as_ref()),
+        ("lifetime_cnt", msg.lifetime_cnt.to_string().as_ref()),
+        ("cooldown_cnt", msg.cooldown_cnt.to_string().as_ref()),
+    ]))
 }

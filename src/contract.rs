@@ -6,7 +6,9 @@ use crate::{
         execute::create_msg,
         instantiate::init,
         migrate::migrate_contract,
-        query::{get_messages, get_msg_by_id, get_msgs_by_addr},
+        query::{
+            get_contract_balance, get_messages, get_msg_by_id, get_msgs_by_addr, get_user_stake,
+        },
     },
     error::ContractError,
     messages::{
@@ -47,6 +49,8 @@ pub fn query(deps: Deps, env: Env, info: MessageInfo, msg: QueryMsg) -> StdResul
         QueryMsg::GetMessageById { id } => get_msg_by_id(deps, env, info, id),
         QueryMsg::GetMessages {} => get_messages(deps, env, info),
         QueryMsg::GetMessagesByAddr { addr } => get_msgs_by_addr(deps, env, info, addr),
+        QueryMsg::GetContractBalance {} => get_contract_balance(deps, env, info),
+        QueryMsg::GetUserStake { addr } => get_user_stake(deps, env, info, addr),
     }
 }
 

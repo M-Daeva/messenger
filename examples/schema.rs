@@ -9,7 +9,7 @@ use messenger::messages::{
     query::QueryMsg,
     response::{MessageResponse, MessagesResponse},
 };
-use messenger::state::{Bank, Book, Message, User};
+use messenger::state::{Book, Message, User};
 
 fn main() {
     let mut out_dir = current_dir().unwrap();
@@ -20,7 +20,6 @@ fn main() {
     export_schema(&schema_for!(InstantiateMsg), &out_dir);
     export_schema(&schema_for!(ExecuteMsg), &out_dir);
     export_schema(&schema_for!(QueryMsg), &out_dir);
-    export_schema(&schema_for!(Bank), &out_dir);
     export_schema(&schema_for!(Book), &out_dir);
     export_schema(&schema_for!(Message), &out_dir);
     export_schema(&schema_for!(User), &out_dir);

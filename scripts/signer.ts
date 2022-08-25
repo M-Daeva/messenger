@@ -1,4 +1,4 @@
-import { GasPrice, SigningStargateClient } from "@cosmjs/stargate";
+import { GasPrice, SigningStargateClient, coin } from "@cosmjs/stargate";
 import { DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
 import { SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 import {
@@ -86,4 +86,4 @@ function getData(
   };
 }
 
-export { getData, SigningCosmWasmClient, SigningStargateClient };
+export { getData, SigningCosmWasmClient, SigningStargateClient, coin };

@@ -2,8 +2,8 @@
 use cosmwasm_std::{to_binary, Binary, Deps, Env, MessageInfo, Order, StdError, StdResult};
 
 use crate::{
-    messages::response::{MessageResponse, MessagesResponse},
-    state::{Message, MESSAGES},
+    messages::response::{BalanceResponse, MessageResponse, MessagesResponse},
+    state::{Message, DENOM, MESSAGES, USERS},
 };
 
 pub fn get_messages(deps: Deps, _env: Env, _info: MessageInfo) -> StdResult<Binary> {
@@ -38,4 +38,21 @@ pub fn get_msgs_by_addr(
         .collect::<StdResult<Vec<_>>>()?;
 
     to_binary(&MessagesResponse { messages })
+}
+
+pub fn get_contract_balance(deps: Deps, env: Env, _info: MessageInfo) -> StdResult<Binary> {
+    let balance = deps.querier.query_balance(env.contract.address, DENOM)?;
+    to_binary(&BalanceResponse { balance })
+}
+
+pub fn get_user_stake(
+    deps: Deps,
+    _env: Env,
+    _info: MessageInfo,
+    addr: String,
+) -> StdResult<Binary> {
+    let user = USERS.load(deps.storage, addr)?;
+    to_binary(&BalanceResponse {
+        balance: user.stake,
+    })
 }

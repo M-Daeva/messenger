@@ -7,4 +7,6 @@ pub enum QueryMsg {
     GetMessages {},
     GetMessageById { id: u128 },
     GetMessagesByAddr { addr: String },
+    GetContractBalance {},
+    GetUserStake { addr: String },
 }

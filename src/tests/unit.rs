@@ -7,7 +7,7 @@ use crate::{
         query::QueryMsg,
         response::{MessageResponse, MessagesResponse},
     },
-    state::{Message, Rarity, Tag},
+    state::{Message, COMMON, EPIC, RARE, TAG},
     tests::helpers::{
         add_msg, create_some_msgs, get_instance, ADMIN_ADDR, ALICE_ADDR, BOB_ADDR, BODY1, BODY2,
         BODY3,
@@ -29,11 +29,11 @@ fn test_create_msg() {
     let (_, _, _, res) = add_msg(
         get_instance(ADMIN_ADDR),
         ExecuteMsg::CreateMessage {
-            tag: Tag::Juno,
+            tag: TAG::JUNO.to_string(),
             body: BODY1.to_string(),
-            rarity: Rarity::Epic,
+            rarity: COMMON.rar.to_string(),
         },
-        ALICE_ADDR,
+        &ALICE_ADDR,
         &[],
     );
 
@@ -42,11 +42,11 @@ fn test_create_msg() {
         vec![
             attr("method", "create_msg"),
             attr("sender", ALICE_ADDR),
-            attr("tag", "JUNO"),
+            attr("tag", TAG::JUNO),
             attr("body", BODY1),
-            attr("rarity", "Epic"),
-            attr("lifetime_cnt", "1000000"),
-            attr("cooldown_cnt", "1")
+            attr("rarity", COMMON.rar),
+            attr("lifetime_cnt", COMMON.lft.to_string()),
+            attr("cooldown_cnt", COMMON.cd.to_string())
         ]
     )
 }
@@ -70,15 +70,7 @@ fn test_query_msg_by_id() {
 
     assert_eq!(
         res.message,
-        Message {
-            id: 1,
-            sender: Addr::unchecked(BOB_ADDR),
-            tag: "JUNO".to_string(),
-            body: BODY2.to_string(),
-            rarity: "Epic".to_string(),
-            lifetime_cnt: 1_000_000,
-            cooldown_cnt: 1,
-        }
+        Message::new(1, Addr::unchecked(BOB_ADDR), TAG::JUNO, BODY2, &COMMON)
     );
 }
 
@@ -94,24 +86,8 @@ fn test_query_msgs_by_addr() {
     assert_eq!(
         res.messages,
         vec![
-            Message {
-                id: 0,
-                sender: Addr::unchecked(ALICE_ADDR),
-                tag: "JUNO".to_string(),
-                body: BODY1.to_string(),
-                rarity: "Epic".to_string(),
-                lifetime_cnt: 1_000_000,
-                cooldown_cnt: 1,
-            },
-            Message {
-                id: 2,
-                sender: Addr::unchecked(ALICE_ADDR),
-                tag: "JUNO".to_string(),
-                body: BODY3.to_string(),
-                rarity: "Epic".to_string(),
-                lifetime_cnt: 1_000_000,
-                cooldown_cnt: 1,
-            },
+            Message::new(0, Addr::unchecked(ALICE_ADDR), TAG::JUNO, BODY1, &COMMON),
+            Message::new(2, Addr::unchecked(ALICE_ADDR), TAG::JUNO, BODY3, &COMMON),
         ]
     );
 }
