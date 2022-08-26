@@ -49,33 +49,22 @@ pub fn execute(
 
 /// Exposes all the queries available in the contract
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, env: Env, info: MessageInfo, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::GetMessageById { id } => get_msg_by_id(deps, env, info, id),
-        QueryMsg::GetMessages {} => get_messages(deps, env, info),
-        QueryMsg::GetMessagesByAddr { addr } => get_msgs_by_addr(deps, env, info, addr),
-        QueryMsg::GetContractBalance {} => get_contract_balance(deps, env, info),
-        QueryMsg::GetUserStake { addr } => get_user_stake(deps, env, info, addr),
+        QueryMsg::GetMessageById { id } => get_msg_by_id(deps, env, id),
+        QueryMsg::GetMessages {} => get_messages(deps, env),
+        QueryMsg::GetMessagesByAddr { addr } => get_msgs_by_addr(deps, env, addr),
+        QueryMsg::GetContractBalance {} => get_contract_balance(deps, env),
+        QueryMsg::GetUserStake { addr } => get_user_stake(deps, env, addr),
     }
 }
 
 /// Used for contract migration
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    msg: MigrateMsg,
-) -> Result<Response, ContractError> {
-    migrate_contract(deps, env, info, msg)
+pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> Result<Response, ContractError> {
+    migrate_contract(deps, env, msg)
 }
 
 // /// The entry point to the contract for processing replies from submessages
 // #[cfg_attr(not(feature = "library"), entry_point)]
-// pub fn reply(
-//     deps: Deps,
-//     env: Env,
-//     info: MessageInfo,
-//     msg: Reply,
-// ) -> Result<Response, ContractError> {
-// }
+// pub fn reply(deps: Deps, env: Env, msg: Reply) -> Result<Response, ContractError> {}

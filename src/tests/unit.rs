@@ -74,9 +74,9 @@ fn test_common_msg() {
 
 #[test]
 fn test_query() {
-    let (deps, env, info, _) = create_some_msgs();
+    let (deps, env, _, _) = create_some_msgs();
     let msg = QueryMsg::GetMessages {};
-    let bin = query(deps.as_ref(), env, info, msg).unwrap();
+    let bin = query(deps.as_ref(), env, msg).unwrap();
     let res = from_binary::<MessagesResponse>(&bin).unwrap();
 
     assert_eq!(res.messages.len(), 3);
@@ -84,9 +84,9 @@ fn test_query() {
 
 #[test]
 fn test_query_msg_by_id() {
-    let (deps, env, info, _) = create_some_msgs();
+    let (deps, env, _, _) = create_some_msgs();
     let msg = QueryMsg::GetMessageById { id: 1 };
-    let bin = query(deps.as_ref(), env, info, msg).unwrap();
+    let bin = query(deps.as_ref(), env, msg).unwrap();
     let res = from_binary::<MessageResponse>(&bin).unwrap();
 
     assert_eq!(
@@ -97,11 +97,11 @@ fn test_query_msg_by_id() {
 
 #[test]
 fn test_query_msgs_by_addr() {
-    let (deps, env, info, _) = create_some_msgs();
+    let (deps, env, _, _) = create_some_msgs();
     let msg = QueryMsg::GetMessagesByAddr {
         addr: ALICE_ADDR.to_string(),
     };
-    let bin = query(deps.as_ref(), env, info, msg).unwrap();
+    let bin = query(deps.as_ref(), env, msg).unwrap();
     let res = from_binary::<MessagesResponse>(&bin).unwrap();
 
     assert_eq!(
