@@ -84,6 +84,12 @@ pub struct User {
     pub stake: Coin,
 }
 
+impl User {
+    pub fn new(addr: String, stake: Coin) -> Self {
+        User { addr, stake }
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Props {
     pub name: String,

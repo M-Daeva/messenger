@@ -9,4 +9,19 @@ pub enum ExecuteMsg {
         body: String,
         rarity: String,
     },
+    DeleteMessage {
+        id: u128,
+    },
+    EditMessage {
+        id: u128,
+        body: String,
+    },
+    SwapTag {
+        id: u128,
+        tag: String,
+    },
+    StakeTokens {},
+    UnstakeTokens {
+        amount: u128,
+    },
 }

@@ -3,7 +3,7 @@ use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Respons
 
 use crate::{
     actions::{
-        execute::create_msg,
+        execute::{create_msg, delete_msg, edit_msg, stake_tokens, swap_tag, unstake_tokens},
         instantiate::init,
         migrate::migrate_contract,
         query::{
@@ -39,6 +39,11 @@ pub fn execute(
         ExecuteMsg::CreateMessage { tag, body, rarity } => {
             create_msg(deps, env, info, body, tag, rarity)
         }
+        ExecuteMsg::DeleteMessage { id } => delete_msg(deps, env, info, id),
+        ExecuteMsg::EditMessage { id, body } => edit_msg(deps, env, info, id, body),
+        ExecuteMsg::SwapTag { id, tag } => swap_tag(deps, env, info, id, tag),
+        ExecuteMsg::StakeTokens {} => stake_tokens(deps, env, info),
+        ExecuteMsg::UnstakeTokens { amount } => unstake_tokens(deps, env, info, amount),
     }
 }
 
