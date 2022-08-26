@@ -5,11 +5,85 @@
     {
       "type": "object",
       "required": [
-        "get_count"
+        "get_messages"
       ],
       "properties": {
-        "get_count": {
+        "get_messages": {
           "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "get_message_by_id"
+      ],
+      "properties": {
+        "get_message_by_id": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "type": "integer",
+              "format": "uint128",
+              "minimum": 0.0
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "get_messages_by_addr"
+      ],
+      "properties": {
+        "get_messages_by_addr": {
+          "type": "object",
+          "required": [
+            "addr"
+          ],
+          "properties": {
+            "addr": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "get_contract_balance"
+      ],
+      "properties": {
+        "get_contract_balance": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "get_user_stake"
+      ],
+      "properties": {
+        "get_user_stake": {
+          "type": "object",
+          "required": [
+            "addr"
+          ],
+          "properties": {
+            "addr": {
+              "type": "string"
+            }
+          }
         }
       },
       "additionalProperties": false

@@ -34,7 +34,7 @@ fn test_common_msg() {
             body: BODY1.to_string(),
             rarity: COMMON.rar.to_string(),
         },
-        &ALICE_ADDR,
+        ALICE_ADDR,
         &[],
     );
 
@@ -58,7 +58,7 @@ fn test_common_msg() {
             id: 0,
             tag: TAG::OSMO.to_string(),
         },
-        &ALICE_ADDR,
+        ALICE_ADDR,
         &[],
     );
 
@@ -123,7 +123,7 @@ fn test_epic_msg() {
             body: BODY1.to_string(),
             rarity: EPIC.rar.to_string(),
         },
-        &ALICE_ADDR,
+        ALICE_ADDR,
         &[coin(EPIC.price.0, DENOM)],
     );
 
@@ -147,7 +147,7 @@ fn test_epic_msg() {
             id: 0,
             body: BODY2.to_string(),
         },
-        &ALICE_ADDR,
+        ALICE_ADDR,
         &[],
     );
 
@@ -167,7 +167,7 @@ fn test_rare_msg() {
     let (deps, env, info, res) = add_msg(
         get_instance(ADMIN_ADDR),
         ExecuteMsg::StakeTokens {},
-        &ALICE_ADDR,
+        ALICE_ADDR,
         &[coin(RARE.stake_req.0, DENOM)],
     );
 
@@ -188,7 +188,7 @@ fn test_rare_msg() {
             body: BODY1.to_string(),
             rarity: RARE.rar.to_string(),
         },
-        &ALICE_ADDR,
+        ALICE_ADDR,
         &[],
     );
 
@@ -211,7 +211,7 @@ fn test_rare_msg() {
         ExecuteMsg::UnstakeTokens {
             amount: RARE.stake_req.0 / 2,
         },
-        &ALICE_ADDR,
+        ALICE_ADDR,
         &[],
     );
 
@@ -235,20 +235,20 @@ fn test_delete_msg() {
             body: BODY1.to_string(),
             rarity: COMMON.rar.to_string(),
         },
-        &ALICE_ADDR,
+        ALICE_ADDR,
         &[],
     );
 
     // delete massage
-    let (deps2, env2, info2, res2) = add_msg(
+    let (_, _, _, res2) = add_msg(
         (deps, env, info, res),
-        ExecuteMsg::DeleteMessage { id: 2 },
-        &ADMIN_ADDR,
+        ExecuteMsg::DeleteMessage { id: 0 },
+        ADMIN_ADDR,
         &[],
     );
 
     assert_eq!(
         res2.unwrap().attributes,
-        vec![attr("method", "delete_msg"), attr("id", "2"),]
+        vec![attr("method", "delete_msg"), attr("id", "0"),]
     );
 }

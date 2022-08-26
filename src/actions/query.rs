@@ -28,7 +28,7 @@ pub fn get_msgs_by_addr(
 ) -> StdResult<Binary> {
     fn compare(p: &Result<(u128, Message), StdError>, addr: &String) -> bool {
         let (_, v) = p.as_ref().unwrap();
-        v.sender == String::from(addr)
+        v.sender == *addr
     }
 
     let messages = MESSAGES

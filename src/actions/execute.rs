@@ -18,7 +18,7 @@ pub fn create_msg(
 
     // verify a tag
     let new_tag = match tag {
-        _ if &tag == TAG::ATOM || &tag == TAG::OSMO || &tag == TAG::JUNO => tag,
+        _ if tag == TAG::ATOM || tag == TAG::OSMO || tag == TAG::JUNO => tag,
         _ => TAG::ATOM.to_string(),
     };
 
@@ -64,7 +64,7 @@ pub fn delete_msg(
     let book = BOOK.load(deps.storage)?;
 
     // verify sender
-    if info.sender != message.sender || info.sender != book.admin {
+    if info.sender != message.sender && info.sender != book.admin {
         return Err(ContractError::CustomError {
             val: "Sender is not an owner!".to_string(),
         });
@@ -129,7 +129,7 @@ pub fn swap_tag(
 
     // verify a tag
     let new_tag = match tag {
-        _ if &tag == TAG::ATOM || &tag == TAG::OSMO || &tag == TAG::JUNO => tag,
+        _ if tag == TAG::ATOM || tag == TAG::OSMO || tag == TAG::JUNO => tag,
         _ => TAG::ATOM.to_string(),
     };
 
